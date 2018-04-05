@@ -16,15 +16,35 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Places;
+
+public class MainActivity extends AppCompatActivity
+                            implements GoogleApiClient.ConnectionCallbacks,
+                                        GoogleApiClient.OnConnectionFailedListener{
 
     // Constants
     public static final String TAG = MainActivity.class.getSimpleName();
+
+    public static final int PERMISSION_REQUEST_FINE_LOCATION = 111;
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     // Member variables
     private PlaceListAdapter mAdapter;
@@ -46,12 +66,57 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new PlaceListAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
 
-        // TODO (4) Create a GoogleApiClient with the LocationServices API and GEO_DATA_API
+        // DONE (4) Create a GoogleApiClient with the LocationServices API and GEO_DATA_API
+        GoogleApiClient client = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .enableAutoManage(this, this)
+                .build();
+
     }
 
-    // TODO (5) Override onConnected, onConnectionSuspended and onConnectionFailed for GoogleApiClient
-    // TODO (7) Override onResume and inside it initialize the location permissions checkbox
-    // TODO (8) Implement onLocationPermissionClicked to handle the CheckBox click event
-    // TODO (9) Implement the Add Place Button click event to show  a toast message with the permission status
+    // DONE (7) Override onResume and inside it initialize the location permissions checkbox
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CheckBox locationCb = (CheckBox) findViewById(R.id.location_permissions_checkbox);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+            locationCb.setChecked(false);
+        } else {
+            locationCb.setChecked(true);
+            locationCb.setEnabled(true);
+        }
+    }
 
+    // DONE (8) Implement onLocationPermissionClicked to handle the CheckBox click event
+    public void onLocationPermissionClicked(View view){
+        String[] permissions = {android.Manifest.permission.ACCESS_FINE_LOCATION};
+        ActivityCompat.requestPermissions(this, permissions,PERMISSION_REQUEST_FINE_LOCATION);
+    }
+
+    // DONE (9) Implement the Add Place Button click event to show  a toast message with the permission status
+    public void addNewLocation(View view) {
+        boolean isPermissionGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        Toast.makeText(this, "Permission granted? " + isPermissionGranted, Toast.LENGTH_LONG).show();
+    }
+
+    // DONE (5) Override onConnected, onConnectionSuspended and onConnectionFailed for GoogleApiClient
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(LOG_TAG, "CONNECTED!");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(LOG_TAG, "CONNECTION SUSPENDED!");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(LOG_TAG, "CONNECTED FAILED!");
+    }
 }
