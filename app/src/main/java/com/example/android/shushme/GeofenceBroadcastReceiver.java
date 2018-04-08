@@ -60,9 +60,9 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         } else {
             Log.e(TAG, "Unknown transition: " + transitionType);
         }
-        // TODO (6) Show a notification to alert the user that the ringer mode has changed.
+        // DONE (6) Show a notification to alert the user that the ringer mode has changed.
         // Feel free to create a helper method (sendNotification)
-
+        sendNotification(context, transitionType);
 
     }
 
@@ -87,5 +87,11 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                             R.drawable.ic_volume_up_white_24dp))
                     .setContentTitle("Silent mode off");
         }
+        // Get an instance of the Notification manager
+        NotificationManager mNotificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Issue the notification
+        mNotificationManager.notify(0, builder.build());
     }
 }
